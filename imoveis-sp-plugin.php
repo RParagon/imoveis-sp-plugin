@@ -1,11 +1,11 @@
 <?php
 /**
  * Plugin Name: Imóveis São Paulo
- * Plugin URI:  https://seudominio.com
+ * Plugin URI:  https://github.com/RParagon/imoveis-sp-plugin/tree/V3
  * Description: Plugin completo para cadastro, listagem e pesquisa de imóveis – totalmente responsivo, com autocomplete de endereço, filtros avançados e página de detalhes customizada com contato via WhatsApp.
  * Version:     1.0
- * Author:      Seu Nome
- * Author URI:  https://seudominio.com
+ * Author:      Virtual Mark
+ * Author URI:  https://virtualmark.com.br
  * License:     GPL2
  * Text Domain: imoveis-sp
  */
