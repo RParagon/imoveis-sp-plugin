@@ -1,0 +1,99 @@
+/* Versão 3 - Estilização Single e Catálogo */
+
+.single-imovel-v3 {
+    margin: 20px auto;
+    max-width: 1200px;
+    padding: 20px;
+    background-color: #fff;
+  }
+  
+  .imovel-header-v3 {
+    border-bottom: 2px solid #eee;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+  }
+  
+  .imovel-title-v3 {
+    font-size: 2em;
+    margin: 0;
+    color: #333;
+  }
+  
+  .imovel-tipo-v3 {
+    font-size: 1em;
+    color: #777;
+    display: inline-block;
+    margin-left: 10px;
+  }
+  
+  .imovel-content-v3 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  
+  .imovel-gallery-v3 img {
+    width: 100%;
+    border-radius: 6px;
+  }
+  
+  .imovel-info-v3 {
+    background-color: #fafafa;
+    padding: 15px;
+    border-radius: 6px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  }
+  
+  .imovel-info-v3 h2 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    color: #333;
+  }
+  
+  .imovel-map-v3 {
+    margin: 10px 0 20px 0;
+  }
+  
+  .imovel-list-v3 {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 10px 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 5px;
+  }
+  
+  .imovel-list-v3 li {
+    background-color: #fff;
+    border: 1px solid #eee;
+    padding: 8px;
+    border-radius: 4px;
+    text-align: center;
+    font-size: 0.9em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+  
+  .imovel-preco-v3 {
+    font-size: 1.2em;
+    margin: 20px 0;
+  }
+  
+  .imovel-descricao-v3 {
+    background-color: #fff;
+    padding: 10px;
+    border-radius: 4px;
+    line-height: 1.5;
+    color: #555;
+  }
+  
+  /* Catálogo V3 */
+  .catalogo-title {
+    font-size: 1.8em;
+    text-align: center;
+    margin-top: 20px;
+    margin-bottom: 20px;
+  }
+  
