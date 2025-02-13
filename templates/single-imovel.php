@@ -1,12 +1,14 @@
 <?php
 /**
- * Template custom para single de "Imóvel"
+ * Template para exibir o Imóvel (CPT) de forma customizada.
+ * Se o tema não possuir single-imovel.php, este será usado.
  */
 get_header();
 
 if ( have_posts() ) :
     while ( have_posts() ) : the_post();
 
+        // Obtém os metadados
         $endereco  = get_post_meta( get_the_ID(), '_endereco_imovel', true );
         $bairro    = get_post_meta( get_the_ID(), '_bairro_imovel', true );
         $cidade    = get_post_meta( get_the_ID(), '_cidade_imovel', true );
@@ -18,62 +20,59 @@ if ( have_posts() ) :
         $suites    = get_post_meta( get_the_ID(), '_suites_imovel', true );
         $vagas     = get_post_meta( get_the_ID(), '_vagas_imovel', true );
         $tipo      = get_post_meta( get_the_ID(), '_tipo_imovel', true );
-        $lat       = get_post_meta( get_the_ID(), '_latitude_imovel', true );
-        $lng       = get_post_meta( get_the_ID(), '_longitude_imovel', true );
+        $latitude  = get_post_meta( get_the_ID(), '_latitude_imovel', true );
+        $longitude = get_post_meta( get_the_ID(), '_longitude_imovel', true );
+
+        // Recupera o número do WhatsApp configurado
+        $whatsapp = get_option( 'imoveis_sp_whatsapp', '' );
+        // Formata o link para WhatsApp
+        $whatsapp_link = !empty($whatsapp) ? 'https://wa.me/' . esc_attr( $whatsapp ) : '#';
         ?>
         <article id="post-<?php the_ID(); ?>" <?php post_class('single-imovel'); ?>>
-            <header class="single-imovel-header">
-                <h1 class="single-imovel-title"><?php the_title(); ?></h1>
-                <?php if ( $tipo ) : ?>
-                    <span class="single-imovel-tipo"><i class="fa fa-home"></i> <?php echo esc_html($tipo); ?></span>
-                <?php endif; ?>
-            </header>
-
-            <div class="single-imovel-content">
-                <div class="single-imovel-galeria">
-                    <?php if ( has_post_thumbnail() ) {
-                        the_post_thumbnail( 'large' );
-                    } ?>
+            <div class="imovel-header">
+                <h1 class="imovel-title"><?php the_title(); ?></h1>
+                <p class="imovel-tipo"><i class="fas fa-home"></i> <?php echo esc_html( $tipo ); ?></p>
+            </div>
+            <div class="imovel-content">
+                <div class="imovel-gallery">
+                    <?php if ( has_post_thumbnail() ) : ?>
+                        <?php the_post_thumbnail( 'large' ); ?>
+                    <?php endif; ?>
                 </div>
-
-                <div class="single-imovel-detalhes">
-                    <h2><i class="fa fa-map-marker-alt"></i> Localização</h2>
-                    <p><strong>Endereço:</strong> <?php echo esc_html($endereco); ?></p>
-                    <p><strong>Bairro:</strong> <?php echo esc_html($bairro); ?></p>
-                    <p><strong>Cidade:</strong> <?php echo esc_html($cidade); ?></p>
-
-                    <?php if ( $lat && $lng ): ?>
-                        <div class="single-imovel-mapa">
+                <div class="imovel-detalhes">
+                    <h2><i class="fas fa-map-marker-alt"></i> <?php _e( 'Localização', 'imoveis-sp' ); ?></h2>
+                    <p><?php echo esc_html( $endereco ); ?>, <?php echo esc_html( $bairro ); ?>, <?php echo esc_html( $cidade ); ?></p>
+                    <?php if ( ! empty( $latitude ) && ! empty( $longitude ) ) : ?>
+                        <div class="imovel-map">
                             <iframe
                               width="100%"
                               height="300"
-                              style="border:0"
-                              loading="lazy"
-                              allowfullscreen
-                              src="https://www.google.com/maps/embed/v1/view?key=<?php echo esc_attr( get_option('imoveis_sp_google_api_key','') ); ?>&center=<?php echo esc_attr($lat); ?>,<?php echo esc_attr($lng); ?>&zoom=15">
+                              frameborder="0" style="border:0"
+                              src="https://www.google.com/maps/embed/v1/view?key=<?php echo esc_attr( get_option('imoveis_sp_google_api_key','') ); ?>&center=<?php echo esc_attr( $latitude ); ?>,<?php echo esc_attr( $longitude ); ?>&zoom=15" allowfullscreen>
                             </iframe>
                         </div>
                     <?php endif; ?>
 
-                    <h2><i class="fa fa-info-circle"></i> Informações do Imóvel</h2>
-                    <ul class="single-imovel-list">
-                        <?php if($area): ?>
-                        <li><i class="fa fa-ruler-combined"></i> <?php echo esc_html($area); ?> m²</li>
-                        <?php endif; ?>
-                        <li><i class="fa fa-bed"></i> <?php echo (int)$quartos; ?> Dorm.</li>
-                        <li><i class="fa fa-bath"></i> <?php echo (int)$banheiros; ?> Banheiros</li>
-                        <li><i class="fa fa-user"></i> <?php echo (int)$suites; ?> Suíte(s)</li>
-                        <li><i class="fa fa-car"></i> <?php echo (int)$vagas; ?> Vaga(s)</li>
+                    <h2><i class="fas fa-info-circle"></i> <?php _e( 'Detalhes do Imóvel', 'imoveis-sp' ); ?></h2>
+                    <ul class="detalhes-lista">
+                        <li><i class="fas fa-ruler-combined"></i> <?php echo esc_html( $area ); ?> m²</li>
+                        <li><i class="fas fa-bed"></i> <?php echo esc_html( $quartos ); ?> <?php _e( 'Quartos', 'imoveis-sp' ); ?></li>
+                        <li><i class="fas fa-bath"></i> <?php echo esc_html( $banheiros ); ?> <?php _e( 'Banheiros', 'imoveis-sp' ); ?></li>
+                        <li><i class="fas fa-user"></i> <?php echo esc_html( $suites ); ?> <?php _e( 'Suítes', 'imoveis-sp' ); ?></li>
+                        <li><i class="fas fa-car"></i> <?php echo esc_html( $vagas ); ?> <?php _e( 'Vagas', 'imoveis-sp' ); ?></li>
+                        <li><i class="fas fa-dollar-sign"></i> <?php _e( 'Preço:', 'imoveis-sp' ); ?> R$ <?php echo esc_html( $preco ); ?></li>
                     </ul>
 
-                    <p class="single-imovel-preco">
-                        <strong><i class="fa fa-dollar-sign"></i> Preço:</strong> R$ <?php echo esc_html($preco); ?>
-                    </p>
-
-                    <h2><i class="fa fa-file-alt"></i> Descrição</h2>
-                    <div class="single-imovel-descricao">
-                        <?php echo wpautop( esc_html($descricao) ); ?>
+                    <h2><i class="fas fa-align-left"></i> <?php _e( 'Descrição', 'imoveis-sp' ); ?></h2>
+                    <div class="imovel-descricao">
+                        <?php echo wpautop( esc_html( $descricao ) ); ?>
                     </div>
+
+                    <?php if ( ! empty( $whatsapp ) ) : ?>
+                        <a href="<?php echo esc_url( $whatsapp_link ); ?>" target="_blank" class="btn-contato">
+                            <i class="fab fa-whatsapp"></i> <?php _e( 'Fale conosco via WhatsApp', 'imoveis-sp' ); ?>
+                        </a>
+                    <?php endif; ?>
                 </div>
             </div>
         </article>

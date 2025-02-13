@@ -1,79 +1,114 @@
-.imoveis-listagem {
+/* Reset básico */
+.catalogo-imoveis, .catalogo-imoveis * {
+    box-sizing: border-box;
+}
+
+/* Barra de filtros moderna */
+.catalogo-filtros {
+    background: #f7f7f7;
+    padding: 15px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+}
+.catalogo-filtros form {
     display: flex;
     flex-wrap: wrap;
-    gap: 20px;
-    margin-bottom: 30px;
+    gap: 15px;
 }
-
-.imovel-item {
-    background-color: #f9f9f9;
-    border: 1px solid #ddd;
-    padding: 15px;
-    width: calc(33.333% - 20px);
-    box-sizing: border-box;
-    border-radius: 4px;
-    position: relative;
-    transition: transform 0.2s ease;
+.catalogo-filtros .filtro-item {
+    flex: 1 1 200px;
 }
-
-.imovel-item:hover {
-    transform: scale(1.02);
-}
-
-.imovel-thumb img {
-    width: 100%;
-    height: auto;
-    display: block;
-    margin-bottom: 10px;
-}
-
-.imovel-dados {
-    margin-top: 10px;
-}
-
-.imovel-titulo {
-    margin: 0 0 10px 0;
-    font-size: 1.2em;
-}
-
-.imovel-link {
-    display: inline-block;
-    background-color: #0073AA;
-    color: #fff;
-    padding: 8px 12px;
-    margin-top: 10px;
-    border-radius: 4px;
-    text-decoration: none;
-}
-
-.imovel-link:hover {
-    background-color: #005177;
-}
-
-form label {
-    display: block;
+.catalogo-filtros label {
+    font-weight: bold;
     margin-bottom: 5px;
+    display: block;
 }
-
-form input[type="text"] {
-    width: 100%;
-    max-width: 300px;
-    padding: 6px;
-    margin-bottom: 10px;
-    border-radius: 4px;
+.catalogo-filtros input {
+    padding: 8px;
     border: 1px solid #ccc;
-    box-sizing: border-box;
-}
-
-form button[type="submit"] {
-    background-color: #0073AA;
-    color: #fff;
-    padding: 8px 16px;
     border-radius: 4px;
+    width: 100%;
+}
+.catalogo-filtros .btn-pesquisa {
+    background: #0073AA;
+    color: #fff;
     border: none;
+    padding: 10px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background 0.3s;
+}
+.catalogo-filtros .btn-pesquisa:hover {
+    background: #005177;
+}
+.filtro-avancado {
+    width: 100%;
+}
+.filtro-avancado .btn-toggle-filtros {
+    background: #eee;
+    color: #333;
+    border: none;
+    padding: 6px 10px;
+    border-radius: 4px;
     cursor: pointer;
 }
+.filtros-adicionais {
+    margin-top: 10px;
+}
 
-form button[type="submit"]:hover {
-    background-color: #005177;
+/* Listagem de imóveis no catálogo */
+.lista-imoveis {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+}
+.imovel-item {
+    background: #fff;
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    overflow: hidden;
+    transition: transform 0.3s;
+}
+.imovel-item:hover {
+    transform: translateY(-5px);
+}
+.imovel-thumb img {
+    width: 100%;
+    display: block;
+}
+.imovel-info {
+    padding: 15px;
+}
+.imovel-titulo {
+    font-size: 1.4em;
+    margin-bottom: 10px;
+    color: #333;
+}
+.imovel-info p {
+    font-size: 0.95em;
+    margin: 5px 0;
+    color: #555;
+}
+.imovel-info p i {
+    margin-right: 5px;
+    color: #0073AA;
+}
+.btn-detalhes {
+    display: inline-block;
+    background: #0073AA;
+    color: #fff;
+    padding: 10px 14px;
+    border-radius: 4px;
+    text-decoration: none;
+    margin-top: 10px;
+    transition: background 0.3s;
+}
+.btn-detalhes:hover {
+    background: #005177;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .catalogo-filtros form { flex-direction: column; }
 }
