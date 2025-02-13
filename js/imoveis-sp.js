@@ -1,12 +1,11 @@
-jQuery(document).ready(function($) {
-    // Exemplo: Adiciona a classe "animated" quando o item entra na viewport
-    function animateOnScroll() {
-        $('.imovel-item').each(function() {
-            if ($(this).offset().top < $(window).scrollTop() + $(window).height() - 100) {
-                $(this).addClass('animated');
-            }
-        });
-    }
-    $(window).on('scroll', animateOnScroll);
-    animateOnScroll();
+jQuery(document).ready(function($){
+    // Exemplo de fadeIn no carregamento
+    $('.imovel-item-v2').hide().each(function(index){
+        $(this).delay(200*index).fadeIn(500);
+    });
+
+    // Se quiser usar algo como AOS, você pode iniciar aqui
+    // AOS.init();
+    
+    // Outras animações/transições podem ser colocadas aqui
 });

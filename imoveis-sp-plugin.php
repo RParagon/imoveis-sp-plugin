@@ -1,60 +1,50 @@
 <?php
 /**
- * Plugin Name: Imóveis São Paulo Premium
- * Plugin URI:  https://seudominio.com/imoveis-sp-premium
- * Description: Plugin completo para cadastro, listagem e pesquisa de imóveis em São Paulo – com design moderno, animações e auto-atualizações via Git.
+ * Plugin Name: Imóveis São Paulo
+ * Plugin URI:  https://seudominio.com
+ * Description: Plugin de exemplo para cadastro e listagem de imóveis na cidade de São Paulo (Versão 2.0 com melhorias).
  * Version:     2.0
  * Author:      Seu Nome
  * Author URI:  https://seudominio.com
  * License:     GPL2
  * Text Domain: imoveis-sp
- *
- * Atualizações automáticas:
- * Este plugin suporta atualizações automáticas a partir de um repositório Git.
- * Utilize a biblioteca "Plugin Update Checker" (incluída no pacote) para ativar essa funcionalidade.
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
-    exit;
+    exit; // Segurança
 }
 
-class ImoveisSPPremium {
+class ImoveisSPPlugin {
 
     public function __construct() {
-        // Registra o CPT e metaboxes
+        // Versão 1 (original)
         add_action( 'init', array( $this, 'registrar_cpt_imoveis' ) );
         add_action( 'add_meta_boxes', array( $this, 'registrar_metaboxes' ) );
         add_action( 'save_post', array( $this, 'salvar_dados_imovel' ) );
-        
-        // Shortcodes
+
+        // Shortcodes versão 1
         add_shortcode( 'listar_imoveis', array( $this, 'shortcode_listar_imoveis' ) );
         add_shortcode( 'pesquisar_imoveis', array( $this, 'shortcode_pesquisar_imoveis' ) );
-        add_shortcode( 'imoveis_custom', array( $this, 'shortcode_imoveis_custom' ) );
-        
-        // Enfileira CSS e JS
-        add_action( 'wp_enqueue_scripts', array( $this, 'enfileirar_assets' ) );
-        
-        // Configura auto-update a partir do Git
-        add_action( 'init', array( $this, 'setup_auto_update' ) );
+
+        // Versão 2 (melhorias e novos recursos)
+        add_action( 'wp_enqueue_scripts', array( $this, 'adicionar_estilos_e_scripts_frontend' ) );
+
+        // Novos shortcodes versão 2
+        add_shortcode( 'listar_imoveis_v2', array( $this, 'shortcode_listar_imoveis_v2' ) );
+        add_shortcode( 'pesquisar_imoveis_v2', array( $this, 'shortcode_pesquisar_imoveis_v2' ) );
+        add_shortcode( 'imoveis_custom_page', array( $this, 'shortcode_imoveis_custom_page' ) );
     }
-    
+
     /**
-     * Configura o update checker para auto-atualizações via Git
+     * =====================================================
+     * =============== PARTE 1 (Versão 1) ==================
+     * =====================================================
+     * Abaixo está todo o código legado da versão 1,
+     * mantendo compatibilidade e funcionamento.
      */
-    public function setup_auto_update() {
-        if ( ! class_exists( 'Puc_v4_Factory' ) ) {
-            require_once plugin_dir_path( __FILE__ ) . 'plugin-update-checker/plugin-update-checker.php';
-        }
-        
-        $updateChecker = Puc_v4_Factory::buildUpdateChecker(
-            'https://github.com/RParagon/imoveis-sp-plugin', // Coloque aqui a URL do seu repositório Git
-            __FILE__,
-            'imoveis-sp-plugin'
-        );
-    }
-    
+
     /**
-     * Registra o Custom Post Type de Imóveis
+     * Registra o CPT de Imóveis (versão 1)
      */
     public function registrar_cpt_imoveis() {
         $labels = array(
@@ -69,10 +59,11 @@ class ImoveisSPPremium {
             'view_item'          => __( 'Ver Imóvel', 'imoveis-sp' ),
             'all_items'          => __( 'Todos os Imóveis', 'imoveis-sp' ),
             'search_items'       => __( 'Buscar Imóveis', 'imoveis-sp' ),
+            'parent_item_colon'  => __( 'Imóvel Pai:', 'imoveis-sp' ),
             'not_found'          => __( 'Nenhum imóvel encontrado.', 'imoveis-sp' ),
-            'not_found_in_trash' => __( 'Nenhum imóvel encontrado na lixeira.', 'imoveis-sp' ),
+            'not_found_in_trash' => __( 'Nenhum imóvel encontrado na lixeira.', 'imoveis-sp' )
         );
-        
+
         $args = array(
             'labels'             => $labels,
             'public'             => true,
@@ -81,413 +72,597 @@ class ImoveisSPPremium {
             'supports'           => array( 'title', 'editor', 'thumbnail' ),
             'menu_icon'          => 'dashicons-building',
         );
-        
+
         register_post_type( 'imovel', $args );
     }
-    
+
     /**
-     * Registra os metaboxes com os detalhes do imóvel
+     * Registra metaboxes (versão 1)
      */
     public function registrar_metaboxes() {
         add_meta_box(
             'dados_imovel',
-            __( 'Detalhes do Imóvel', 'imoveis-sp' ),
+            __( 'Dados do Imóvel (v1 + novos campos v2)', 'imoveis-sp' ),
             array( $this, 'metabox_dados_imovel_callback' ),
             'imovel',
             'normal',
-            'high'
+            'default'
         );
     }
-    
+
     /**
-     * Renderiza o metabox com os campos personalizados
+     * Callback do metabox (versão 1 + novos campos v2)
      */
     public function metabox_dados_imovel_callback( $post ) {
+        // Nonce para segurança
         wp_nonce_field( 'salvar_dados_imovel', 'dados_imovel_nonce' );
-        
-        // Recupera os metadados
-        $endereco       = get_post_meta( $post->ID, '_endereco_imovel', true );
-        $bairro         = get_post_meta( $post->ID, '_bairro_imovel', true );
-        $cidade         = get_post_meta( $post->ID, '_cidade_imovel', true );
-        $preco          = get_post_meta( $post->ID, '_preco_imovel', true );
-        $descricao      = get_post_meta( $post->ID, '_descricao_imovel', true );
-        $tipo           = get_post_meta( $post->ID, '_tipo_imovel', true );
-        $quartos        = get_post_meta( $post->ID, '_quartos_imovel', true );
-        $banheiros      = get_post_meta( $post->ID, '_banheiros_imovel', true );
-        $garagens       = get_post_meta( $post->ID, '_garagens_imovel', true );
-        $area           = get_post_meta( $post->ID, '_area_imovel', true );
-        $ano_construcao = get_post_meta( $post->ID, '_ano_construcao_imovel', true );
-        $status         = get_post_meta( $post->ID, '_status_imovel', true );
+
+        // Campos versão 1 (básicos)
+        $endereco  = get_post_meta( $post->ID, '_endereco_imovel', true );
+        $bairro    = get_post_meta( $post->ID, '_bairro_imovel', true );
+        $cidade    = get_post_meta( $post->ID, '_cidade_imovel', true );
+        $preco     = get_post_meta( $post->ID, '_preco_imovel', true );
+        $descricao = get_post_meta( $post->ID, '_descricao_imovel', true );
+
+        // Novos campos (versão 2)
+        $area     = get_post_meta( $post->ID, '_area_imovel', true );
+        $quartos  = get_post_meta( $post->ID, '_quartos_imovel', true );
+        $banheiros= get_post_meta( $post->ID, '_banheiros_imovel', true );
+        $suites   = get_post_meta( $post->ID, '_suites_imovel', true );
+        $vagas    = get_post_meta( $post->ID, '_vagas_imovel', true );
+        $tipo     = get_post_meta( $post->ID, '_tipo_imovel', true ); // Ex: Apartamento, Casa, etc.
         ?>
-        <style>
-            .imoveis-meta-box label {
-                display: block;
-                margin-top: 10px;
-                font-weight: bold;
-            }
-            .imoveis-meta-box input, .imoveis-meta-box select, .imoveis-meta-box textarea {
-                width: 100%;
-                padding: 6px;
-                margin-top: 5px;
-            }
-        </style>
-        <div class="imoveis-meta-box">
-            <label for="endereco_imovel"><?php _e( 'Endereço:', 'imoveis-sp' ); ?></label>
-            <input type="text" name="endereco_imovel" id="endereco_imovel" value="<?php echo esc_attr( $endereco ); ?>">
-            
-            <label for="bairro_imovel"><?php _e( 'Bairro:', 'imoveis-sp' ); ?></label>
-            <input type="text" name="bairro_imovel" id="bairro_imovel" value="<?php echo esc_attr( $bairro ); ?>">
-            
-            <label for="cidade_imovel"><?php _e( 'Cidade:', 'imoveis-sp' ); ?></label>
-            <input type="text" name="cidade_imovel" id="cidade_imovel" value="<?php echo esc_attr( $cidade ); ?>">
-            
-            <label for="preco_imovel"><?php _e( 'Preço (R$):', 'imoveis-sp' ); ?></label>
-            <input type="number" step="0.01" name="preco_imovel" id="preco_imovel" value="<?php echo esc_attr( $preco ); ?>">
-            
-            <label for="descricao_imovel"><?php _e( 'Descrição:', 'imoveis-sp' ); ?></label>
-            <textarea name="descricao_imovel" id="descricao_imovel" rows="4"><?php echo esc_textarea( $descricao ); ?></textarea>
-            
-            <label for="tipo_imovel"><?php _e( 'Tipo de Imóvel:', 'imoveis-sp' ); ?></label>
-            <select name="tipo_imovel" id="tipo_imovel">
-                <option value="casa" <?php selected( $tipo, 'casa' ); ?>><?php _e( 'Casa', 'imoveis-sp' ); ?></option>
-                <option value="apartamento" <?php selected( $tipo, 'apartamento' ); ?>><?php _e( 'Apartamento', 'imoveis-sp' ); ?></option>
-                <option value="comercial" <?php selected( $tipo, 'comercial' ); ?>><?php _e( 'Comercial', 'imoveis-sp' ); ?></option>
-                <option value="terreno" <?php selected( $tipo, 'terreno' ); ?>><?php _e( 'Terreno', 'imoveis-sp' ); ?></option>
-            </select>
-            
-            <label for="quartos_imovel"><?php _e( 'Número de Quartos:', 'imoveis-sp' ); ?></label>
-            <input type="number" name="quartos_imovel" id="quartos_imovel" value="<?php echo esc_attr( $quartos ); ?>">
-            
-            <label for="banheiros_imovel"><?php _e( 'Número de Banheiros:', 'imoveis-sp' ); ?></label>
-            <input type="number" name="banheiros_imovel" id="banheiros_imovel" value="<?php echo esc_attr( $banheiros ); ?>">
-            
-            <label for="garagens_imovel"><?php _e( 'Vagas de Garagem:', 'imoveis-sp' ); ?></label>
-            <input type="number" name="garagens_imovel" id="garagens_imovel" value="<?php echo esc_attr( $garagens ); ?>">
-            
-            <label for="area_imovel"><?php _e( 'Área (m²):', 'imoveis-sp' ); ?></label>
-            <input type="number" name="area_imovel" id="area_imovel" value="<?php echo esc_attr( $area ); ?>">
-            
-            <label for="ano_construcao_imovel"><?php _e( 'Ano de Construção:', 'imoveis-sp' ); ?></label>
-            <input type="number" name="ano_construcao_imovel" id="ano_construcao_imovel" value="<?php echo esc_attr( $ano_construcao ); ?>">
-            
-            <label for="status_imovel"><?php _e( 'Status:', 'imoveis-sp' ); ?></label>
-            <select name="status_imovel" id="status_imovel">
-                <option value="venda" <?php selected( $status, 'venda' ); ?>><?php _e( 'Venda', 'imoveis-sp' ); ?></option>
-                <option value="aluguel" <?php selected( $status, 'aluguel' ); ?>><?php _e( 'Aluguel', 'imoveis-sp' ); ?></option>
-            </select>
-        </div>
+        <!-- Campos versão 1 -->
+        <p>
+            <label for="endereco_imovel"><?php _e( 'Endereço:', 'imoveis-sp' ); ?></label><br>
+            <input type="text" name="endereco_imovel" id="endereco_imovel" value="<?php echo esc_attr( $endereco ); ?>" style="width:100%;" />
+        </p>
+        <p>
+            <label for="bairro_imovel"><?php _e( 'Bairro:', 'imoveis-sp' ); ?></label><br>
+            <input type="text" name="bairro_imovel" id="bairro_imovel" value="<?php echo esc_attr( $bairro ); ?>" style="width:100%;" />
+        </p>
+        <p>
+            <label for="cidade_imovel"><?php _e( 'Cidade:', 'imoveis-sp' ); ?></label><br>
+            <input type="text" name="cidade_imovel" id="cidade_imovel" value="<?php echo esc_attr( $cidade ); ?>" style="width:100%;" />
+        </p>
+        <p>
+            <label for="preco_imovel"><?php _e( 'Preço (R$):', 'imoveis-sp' ); ?></label><br>
+            <input type="number" name="preco_imovel" id="preco_imovel" value="<?php echo esc_attr( $preco ); ?>" style="width:100%;" />
+        </p>
+        <p>
+            <label for="descricao_imovel"><?php _e( 'Descrição:', 'imoveis-sp' ); ?></label><br>
+            <textarea name="descricao_imovel" id="descricao_imovel" rows="4" style="width:100%;"><?php echo esc_textarea( $descricao ); ?></textarea>
+        </p>
+
+        <hr>
+        <h3><?php _e( 'Dados adicionais (Versão 2)', 'imoveis-sp' ); ?></h3>
+
+        <!-- Campos versão 2 -->
+        <p>
+            <label for="area_imovel"><?php _e( 'Área (m²):', 'imoveis-sp' ); ?></label><br>
+            <input type="number" name="area_imovel" id="area_imovel" value="<?php echo esc_attr( $area ); ?>" style="width:100%;" />
+        </p>
+        <p>
+            <label for="quartos_imovel"><?php _e( 'Quartos:', 'imoveis-sp' ); ?></label><br>
+            <input type="number" name="quartos_imovel" id="quartos_imovel" value="<?php echo esc_attr( $quartos ); ?>" style="width:100%;" />
+        </p>
+        <p>
+            <label for="banheiros_imovel"><?php _e( 'Banheiros:', 'imoveis-sp' ); ?></label><br>
+            <input type="number" name="banheiros_imovel" id="banheiros_imovel" value="<?php echo esc_attr( $banheiros ); ?>" style="width:100%;" />
+        </p>
+        <p>
+            <label for="suites_imovel"><?php _e( 'Suítes:', 'imoveis-sp' ); ?></label><br>
+            <input type="number" name="suites_imovel" id="suites_imovel" value="<?php echo esc_attr( $suites ); ?>" style="width:100%;" />
+        </p>
+        <p>
+            <label for="vagas_imovel"><?php _e( 'Vagas de garagem:', 'imoveis-sp' ); ?></label><br>
+            <input type="number" name="vagas_imovel" id="vagas_imovel" value="<?php echo esc_attr( $vagas ); ?>" style="width:100%;" />
+        </p>
+        <p>
+            <label for="tipo_imovel"><?php _e( 'Tipo do Imóvel:', 'imoveis-sp' ); ?></label><br>
+            <input type="text" name="tipo_imovel" id="tipo_imovel" value="<?php echo esc_attr( $tipo ); ?>" placeholder="<?php _e('Ex: Apartamento, Casa, Comercial...', 'imoveis-sp'); ?>" style="width:100%;" />
+        </p>
         <?php
     }
-    
+
     /**
-     * Salva os dados do imóvel ao salvar o post
+     * Salva os dados do imóvel (versão 1 e 2)
      */
     public function salvar_dados_imovel( $post_id ) {
-        if ( ! isset( $_POST['dados_imovel_nonce'] ) || ! wp_verify_nonce( $_POST['dados_imovel_nonce'], 'salvar_dados_imovel' ) ) {
+        if ( ! isset( $_POST['dados_imovel_nonce'] ) ) {
             return;
         }
-        if ( defined('DOING_AUTOSAVE') && DOING_AUTOSAVE ) {
+        if ( ! wp_verify_nonce( $_POST['dados_imovel_nonce'], 'salvar_dados_imovel' ) ) {
             return;
         }
-        if ( isset( $_POST['post_type'] ) && 'imovel' === $_POST['post_type'] && ! current_user_can( 'edit_post', $post_id ) ) {
+        if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
             return;
         }
-        
-        $fields = array(
-            'endereco_imovel'       => '_endereco_imovel',
-            'bairro_imovel'         => '_bairro_imovel',
-            'cidade_imovel'         => '_cidade_imovel',
-            'preco_imovel'          => '_preco_imovel',
-            'descricao_imovel'      => '_descricao_imovel',
-            'tipo_imovel'           => '_tipo_imovel',
-            'quartos_imovel'        => '_quartos_imovel',
-            'banheiros_imovel'      => '_banheiros_imovel',
-            'garagens_imovel'       => '_garagens_imovel',
-            'area_imovel'           => '_area_imovel',
-            'ano_construcao_imovel' => '_ano_construcao_imovel',
-            'status_imovel'         => '_status_imovel'
-        );
-        
-        foreach ( $fields as $field => $meta_key ) {
-            if ( isset( $_POST[$field] ) ) {
-                if ( in_array( $field, array( 'preco_imovel', 'area_imovel' ) ) ) {
-                    update_post_meta( $post_id, $meta_key, floatval( $_POST[$field] ) );
-                } elseif ( in_array( $field, array( 'quartos_imovel', 'banheiros_imovel', 'garagens_imovel', 'ano_construcao_imovel' ) ) ) {
-                    update_post_meta( $post_id, $meta_key, intval( $_POST[$field] ) );
-                } else {
-                    update_post_meta( $post_id, $meta_key, sanitize_text_field( $_POST[$field] ) );
-                }
+        if ( isset( $_POST['post_type'] ) && 'imovel' === $_POST['post_type'] ) {
+            if ( ! current_user_can( 'edit_post', $post_id ) ) {
+                return;
             }
         }
+
+        // Salva campos versão 1
+        if ( isset( $_POST['endereco_imovel'] ) ) {
+            update_post_meta( $post_id, '_endereco_imovel', sanitize_text_field( $_POST['endereco_imovel'] ) );
+        }
+        if ( isset( $_POST['bairro_imovel'] ) ) {
+            update_post_meta( $post_id, '_bairro_imovel', sanitize_text_field( $_POST['bairro_imovel'] ) );
+        }
+        if ( isset( $_POST['cidade_imovel'] ) ) {
+            update_post_meta( $post_id, '_cidade_imovel', sanitize_text_field( $_POST['cidade_imovel'] ) );
+        }
+        if ( isset( $_POST['preco_imovel'] ) ) {
+            update_post_meta( $post_id, '_preco_imovel', floatval( $_POST['preco_imovel'] ) );
+        }
+        if ( isset( $_POST['descricao_imovel'] ) ) {
+            update_post_meta( $post_id, '_descricao_imovel', sanitize_textarea_field( $_POST['descricao_imovel'] ) );
+        }
+
+        // Salva novos campos versão 2
+        if ( isset( $_POST['area_imovel'] ) ) {
+            update_post_meta( $post_id, '_area_imovel', floatval( $_POST['area_imovel'] ) );
+        }
+        if ( isset( $_POST['quartos_imovel'] ) ) {
+            update_post_meta( $post_id, '_quartos_imovel', intval( $_POST['quartos_imovel'] ) );
+        }
+        if ( isset( $_POST['banheiros_imovel'] ) ) {
+            update_post_meta( $post_id, '_banheiros_imovel', intval( $_POST['banheiros_imovel'] ) );
+        }
+        if ( isset( $_POST['suites_imovel'] ) ) {
+            update_post_meta( $post_id, '_suites_imovel', intval( $_POST['suites_imovel'] ) );
+        }
+        if ( isset( $_POST['vagas_imovel'] ) ) {
+            update_post_meta( $post_id, '_vagas_imovel', intval( $_POST['vagas_imovel'] ) );
+        }
+        if ( isset( $_POST['tipo_imovel'] ) ) {
+            update_post_meta( $post_id, '_tipo_imovel', sanitize_text_field( $_POST['tipo_imovel'] ) );
+        }
     }
-    
+
     /**
-     * Enfileira os arquivos CSS e JS do plugin
-     */
-    public function enfileirar_assets() {
-        wp_enqueue_style(
-            'imoveis-sp-css',
-            plugin_dir_url( __FILE__ ) . 'css/imoveis-sp.css',
-            array(),
-            '2.0'
-        );
-        
-        wp_enqueue_script(
-            'imoveis-sp-js',
-            plugin_dir_url( __FILE__ ) . 'js/imoveis-sp.js',
-            array('jquery'),
-            '2.0',
-            true
-        );
-    }
-    
-    /**
-     * Shortcode [listar_imoveis] – Lista os imóveis (parâmetro: quantidade)
+     * Shortcode versão 1: [listar_imoveis]
      */
     public function shortcode_listar_imoveis( $atts ) {
         $atts = shortcode_atts( array(
             'quantidade' => 10,
         ), $atts, 'listar_imoveis' );
-        
+
         ob_start();
-        
+
         $args = array(
             'post_type'      => 'imovel',
             'posts_per_page' => $atts['quantidade'],
         );
-        
         $query = new WP_Query( $args );
-        
-        if ( $query->have_posts() ) {
-            echo '<div class="imoveis-listagem">';
-            while ( $query->have_posts() ) {
-                $query->the_post();
-                $this->render_imovel_item();
-            }
-            echo '</div>';
-        } else {
+
+        if ( $query->have_posts() ) : ?>
+            <div class="imoveis-listagem">
+                <?php
+                while ( $query->have_posts() ) : $query->the_post();
+                    $endereco  = get_post_meta( get_the_ID(), '_endereco_imovel', true );
+                    $bairro    = get_post_meta( get_the_ID(), '_bairro_imovel', true );
+                    $cidade    = get_post_meta( get_the_ID(), '_cidade_imovel', true );
+                    $preco     = get_post_meta( get_the_ID(), '_preco_imovel', true );
+                    $descricao = get_post_meta( get_the_ID(), '_descricao_imovel', true );
+                    ?>
+                    <div class="imovel-item">
+                        <?php if ( has_post_thumbnail() ) : ?>
+                            <div class="imovel-thumb">
+                                <?php the_post_thumbnail( 'medium' ); ?>
+                            </div>
+                        <?php endif; ?>
+                        <div class="imovel-dados">
+                            <h3 class="imovel-titulo"><?php the_title(); ?></h3>
+                            <p><strong><?php _e( 'Endereço:', 'imoveis-sp' ); ?></strong> <?php echo esc_html( $endereco ); ?></p>
+                            <p><strong><?php _e( 'Bairro:', 'imoveis-sp' ); ?></strong> <?php echo esc_html( $bairro ); ?></p>
+                            <p><strong><?php _e( 'Cidade:', 'imoveis-sp' ); ?></strong> <?php echo esc_html( $cidade ); ?></p>
+                            <p><strong><?php _e( 'Preço:', 'imoveis-sp' ); ?></strong> R$ <?php echo esc_html( $preco ); ?></p>
+                            <p><strong><?php _e( 'Descrição:', 'imoveis-sp' ); ?></strong> <?php echo esc_html( $descricao ); ?></p>
+                            <a href="<?php the_permalink(); ?>" class="imovel-link"><?php _e( 'Ver detalhes', 'imoveis-sp' ); ?></a>
+                        </div>
+                    </div>
+                <?php endwhile; ?>
+            </div>
+        <?php
+        else:
             echo '<p>' . __( 'Nenhum imóvel encontrado.', 'imoveis-sp' ) . '</p>';
-        }
+        endif;
+
         wp_reset_postdata();
-        
+
         return ob_get_clean();
     }
-    
+
     /**
-     * Shortcode [pesquisar_imoveis] – Exibe formulário e resultados de busca avançada
+     * Shortcode versão 1: [pesquisar_imoveis]
      */
     public function shortcode_pesquisar_imoveis( $atts ) {
         ob_start();
         ?>
-        <form method="GET" action="" class="imoveis-pesquisa-form">
-            <div class="form-group">
-                <label for="pesquisa_bairro"><?php _e( 'Bairro:', 'imoveis-sp' ); ?></label>
-                <input type="text" id="pesquisa_bairro" name="pesquisa_bairro" value="<?php echo isset($_GET['pesquisa_bairro']) ? esc_attr($_GET['pesquisa_bairro']) : ''; ?>">
-            </div>
-            <div class="form-group">
-                <label for="pesquisa_cidade"><?php _e( 'Cidade:', 'imoveis-sp' ); ?></label>
-                <input type="text" id="pesquisa_cidade" name="pesquisa_cidade" value="<?php echo isset($_GET['pesquisa_cidade']) ? esc_attr($_GET['pesquisa_cidade']) : ''; ?>">
-            </div>
-            <div class="form-group">
-                <label for="pesquisa_tipo"><?php _e( 'Tipo:', 'imoveis-sp' ); ?></label>
-                <select id="pesquisa_tipo" name="pesquisa_tipo">
-                    <option value=""><?php _e( 'Selecione', 'imoveis-sp' ); ?></option>
-                    <option value="casa" <?php selected( isset($_GET['pesquisa_tipo']) ? $_GET['pesquisa_tipo'] : '', 'casa' ); ?>><?php _e( 'Casa', 'imoveis-sp' ); ?></option>
-                    <option value="apartamento" <?php selected( isset($_GET['pesquisa_tipo']) ? $_GET['pesquisa_tipo'] : '', 'apartamento' ); ?>><?php _e( 'Apartamento', 'imoveis-sp' ); ?></option>
-                    <option value="comercial" <?php selected( isset($_GET['pesquisa_tipo']) ? $_GET['pesquisa_tipo'] : '', 'comercial' ); ?>><?php _e( 'Comercial', 'imoveis-sp' ); ?></option>
-                    <option value="terreno" <?php selected( isset($_GET['pesquisa_tipo']) ? $_GET['pesquisa_tipo'] : '', 'terreno' ); ?>><?php _e( 'Terreno', 'imoveis-sp' ); ?></option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="pesquisa_quartos"><?php _e( 'Quartos Mínimos:', 'imoveis-sp' ); ?></label>
-                <input type="number" id="pesquisa_quartos" name="pesquisa_quartos" min="0" value="<?php echo isset($_GET['pesquisa_quartos']) ? intval($_GET['pesquisa_quartos']) : ''; ?>">
-            </div>
-            <div class="form-group">
-                <label for="pesquisa_preco_min"><?php _e( 'Preço Mínimo:', 'imoveis-sp' ); ?></label>
-                <input type="number" id="pesquisa_preco_min" name="pesquisa_preco_min" min="0" step="0.01" value="<?php echo isset($_GET['pesquisa_preco_min']) ? floatval($_GET['pesquisa_preco_min']) : ''; ?>">
-            </div>
-            <div class="form-group">
-                <label for="pesquisa_preco_max"><?php _e( 'Preço Máximo:', 'imoveis-sp' ); ?></label>
-                <input type="number" id="pesquisa_preco_max" name="pesquisa_preco_max" min="0" step="0.01" value="<?php echo isset($_GET['pesquisa_preco_max']) ? floatval($_GET['pesquisa_preco_max']) : ''; ?>">
-            </div>
-            <button type="submit" class="btn-imoveis"><?php _e( 'Buscar', 'imoveis-sp' ); ?></button>
+        <form method="GET" action="">
+            <label for="pesquisa_bairro"><?php _e( 'Bairro:', 'imoveis-sp' ); ?></label>
+            <input type="text" id="pesquisa_bairro" name="pesquisa_bairro" value="<?php echo isset($_GET['pesquisa_bairro']) ? esc_attr($_GET['pesquisa_bairro']) : ''; ?>">
+
+            <label for="pesquisa_cidade"><?php _e( 'Cidade:', 'imoveis-sp' ); ?></label>
+            <input type="text" id="pesquisa_cidade" name="pesquisa_cidade" value="<?php echo isset($_GET['pesquisa_cidade']) ? esc_attr($_GET['pesquisa_cidade']) : ''; ?>">
+
+            <button type="submit"><?php _e( 'Buscar', 'imoveis-sp' ); ?></button>
         </form>
         <?php
-        
-        if ( isset($_GET['pesquisa_bairro']) || isset($_GET['pesquisa_cidade']) || isset($_GET['pesquisa_tipo']) || isset($_GET['pesquisa_quartos']) || isset($_GET['pesquisa_preco_min']) || isset($_GET['pesquisa_preco_max']) ) {
+
+        if ( isset($_GET['pesquisa_bairro']) || isset($_GET['pesquisa_cidade']) ) {
+            $bairro_buscado = isset($_GET['pesquisa_bairro']) ? sanitize_text_field($_GET['pesquisa_bairro']) : '';
+            $cidade_buscada = isset($_GET['pesquisa_cidade']) ? sanitize_text_field($_GET['pesquisa_cidade']) : '';
+
             $meta_query = array('relation' => 'AND');
-            
-            if ( ! empty( $_GET['pesquisa_bairro'] ) ) {
+
+            if ( ! empty($bairro_buscado) ) {
                 $meta_query[] = array(
                     'key'     => '_bairro_imovel',
-                    'value'   => sanitize_text_field( $_GET['pesquisa_bairro'] ),
+                    'value'   => $bairro_buscado,
                     'compare' => 'LIKE'
                 );
             }
-            
-            if ( ! empty( $_GET['pesquisa_cidade'] ) ) {
+            if ( ! empty($cidade_buscada) ) {
                 $meta_query[] = array(
                     'key'     => '_cidade_imovel',
-                    'value'   => sanitize_text_field( $_GET['pesquisa_cidade'] ),
+                    'value'   => $cidade_buscada,
                     'compare' => 'LIKE'
                 );
             }
-            
-            if ( ! empty( $_GET['pesquisa_tipo'] ) ) {
-                $meta_query[] = array(
-                    'key'     => '_tipo_imovel',
-                    'value'   => sanitize_text_field( $_GET['pesquisa_tipo'] ),
-                    'compare' => '='
-                );
-            }
-            
-            if ( isset($_GET['pesquisa_quartos']) && intval($_GET['pesquisa_quartos']) > 0 ) {
-                $meta_query[] = array(
-                    'key'     => '_quartos_imovel',
-                    'value'   => intval($_GET['pesquisa_quartos']),
-                    'type'    => 'NUMERIC',
-                    'compare' => '>='
-                );
-            }
-            
-            if ( isset($_GET['pesquisa_preco_min']) && floatval($_GET['pesquisa_preco_min']) > 0 ) {
-                $meta_query[] = array(
-                    'key'     => '_preco_imovel',
-                    'value'   => floatval($_GET['pesquisa_preco_min']),
-                    'type'    => 'NUMERIC',
-                    'compare' => '>='
-                );
-            }
-            
-            if ( isset($_GET['pesquisa_preco_max']) && floatval($_GET['pesquisa_preco_max']) > 0 ) {
-                $meta_query[] = array(
-                    'key'     => '_preco_imovel',
-                    'value'   => floatval($_GET['pesquisa_preco_max']),
-                    'type'    => 'NUMERIC',
-                    'compare' => '<='
-                );
-            }
-            
+
             $args = array(
                 'post_type'      => 'imovel',
                 'posts_per_page' => -1,
-                'meta_query'     => $meta_query,
+                'meta_query'     => $meta_query
             );
-            
+
             $query = new WP_Query( $args );
+
             echo '<div class="imoveis-listagem">';
             if ( $query->have_posts() ) {
                 while ( $query->have_posts() ) {
                     $query->the_post();
-                    $this->render_imovel_item();
+                    $endereco  = get_post_meta( get_the_ID(), '_endereco_imovel', true );
+                    $bairro    = get_post_meta( get_the_ID(), '_bairro_imovel', true );
+                    $cidade    = get_post_meta( get_the_ID(), '_cidade_imovel', true );
+                    $preco     = get_post_meta( get_the_ID(), '_preco_imovel', true );
+                    $descricao = get_post_meta( get_the_ID(), '_descricao_imovel', true );
+                    ?>
+                    <div class="imovel-item">
+                        <?php if ( has_post_thumbnail() ) : ?>
+                            <div class="imovel-thumb">
+                                <?php the_post_thumbnail( 'medium' ); ?>
+                            </div>
+                        <?php endif; ?>
+                        <div class="imovel-dados">
+                            <h3 class="imovel-titulo"><?php the_title(); ?></h3>
+                            <p><strong><?php _e( 'Endereço:', 'imoveis-sp' ); ?></strong> <?php echo esc_html( $endereco ); ?></p>
+                            <p><strong><?php _e( 'Bairro:', 'imoveis-sp' ); ?></strong> <?php echo esc_html( $bairro ); ?></p>
+                            <p><strong><?php _e( 'Cidade:', 'imoveis-sp' ); ?></strong> <?php echo esc_html( $cidade ); ?></p>
+                            <p><strong><?php _e( 'Preço:', 'imoveis-sp' ); ?></strong> R$ <?php echo esc_html( $preco ); ?></p>
+                            <p><strong><?php _e( 'Descrição:', 'imoveis-sp' ); ?></strong> <?php echo esc_html( $descricao ); ?></p>
+                            <a href="<?php the_permalink(); ?>" class="imovel-link"><?php _e( 'Ver detalhes', 'imoveis-sp' ); ?></a>
+                        </div>
+                    </div>
+                    <?php
                 }
             } else {
-                echo '<p>' . __( 'Nenhum imóvel encontrado para os critérios informados.', 'imoveis-sp' ) . '</p>';
+                echo '<p>' . __( 'Nenhum imóvel encontrado para esses critérios.', 'imoveis-sp' ) . '</p>';
             }
             echo '</div>';
+
             wp_reset_postdata();
         }
-        
+
         return ob_get_clean();
     }
-    
+
     /**
-     * Shortcode [imoveis_custom] – Cria uma página customizada de imóveis (parâmetros: local, tipo, titulo)
+     * =====================================================
+     * =============== PARTE 2 (Versão 2) ==================
+     * =====================================================
+     * Abaixo estão as novidades e melhorias.
      */
-    public function shortcode_imoveis_custom( $atts ) {
+
+    /**
+     * Carrega estilos e scripts da versão 2
+     * Mantém imoveis-sp.css (versão 1) e adiciona imoveis-sp-v2.css e imoveis-sp-v2.js
+     */
+    public function adicionar_estilos_e_scripts_frontend() {
+        // Mantemos o estilo antigo para não quebrar nada
+        wp_enqueue_style(
+            'imoveis-sp-css',
+            plugin_dir_url(__FILE__) . 'css/imoveis-sp.css',
+            array(),
+            '1.0'
+        );
+
+        // Novo estilo mais moderno (versão 2)
+        wp_enqueue_style(
+            'imoveis-sp-v2-css',
+            plugin_dir_url(__FILE__) . 'css/imoveis-sp-v2.css',
+            array(),
+            '2.0'
+        );
+
+        // Script de animações/efeitos (versão 2)
+        wp_enqueue_script(
+            'imoveis-sp-v2-js',
+            plugin_dir_url(__FILE__) . 'js/imoveis-sp-v2.js',
+            array('jquery'),
+            '2.0',
+            true
+        );
+    }
+
+    /**
+     * NOVO Shortcode v2: [listar_imoveis_v2]
+     * - Listagem com design atualizado, mostrando novos campos (quartos, banheiros, etc).
+     */
+    public function shortcode_listar_imoveis_v2( $atts ) {
         $atts = shortcode_atts( array(
-            'local' => '',
-            'tipo'  => '',
-            'titulo'=> __( 'Imóveis', 'imoveis-sp' ),
-        ), $atts, 'imoveis_custom' );
-        
+            'quantidade' => 6,
+        ), $atts, 'listar_imoveis_v2' );
+
         ob_start();
-        
-        echo '<h2 class="imoveis-custom-title">' . esc_html( $atts['titulo'] ) . '</h2>';
-        
-        $meta_query = array();
-        
-        if ( ! empty( $atts['local'] ) ) {
-            $meta_query[] = array(
-                'key'     => '_bairro_imovel',
-                'value'   => sanitize_text_field( $atts['local'] ),
-                'compare' => 'LIKE'
-            );
-        }
-        
-        if ( ! empty( $atts['tipo'] ) ) {
-            $meta_query[] = array(
-                'key'     => '_tipo_imovel',
-                'value'   => sanitize_text_field( $atts['tipo'] ),
-                'compare' => '='
-            );
-        }
-        
+
         $args = array(
             'post_type'      => 'imovel',
-            'posts_per_page' => -1,
+            'posts_per_page' => $atts['quantidade'],
         );
-        if ( ! empty( $meta_query ) ) {
-            $args['meta_query'] = $meta_query;
-        }
-        
         $query = new WP_Query( $args );
-        if ( $query->have_posts() ) {
-            echo '<div class="imoveis-listagem imoveis-custom-list">';
-            while ( $query->have_posts() ) {
-                $query->the_post();
-                $this->render_imovel_item();
-            }
-            echo '</div>';
-        } else {
-            echo '<p>' . __( 'Nenhum imóvel encontrado para estes critérios.', 'imoveis-sp' ) . '</p>';
-        }
+
+        if ( $query->have_posts() ) : ?>
+            <div class="imoveis-listagem-v2">
+                <?php
+                while ( $query->have_posts() ) : $query->the_post();
+                    $endereco  = get_post_meta( get_the_ID(), '_endereco_imovel', true );
+                    $bairro    = get_post_meta( get_the_ID(), '_bairro_imovel', true );
+                    $cidade    = get_post_meta( get_the_ID(), '_cidade_imovel', true );
+                    $preco     = get_post_meta( get_the_ID(), '_preco_imovel', true );
+                    $descricao = get_post_meta( get_the_ID(), '_descricao_imovel', true );
+
+                    // Novos campos
+                    $area      = get_post_meta( get_the_ID(), '_area_imovel', true );
+                    $quartos   = get_post_meta( get_the_ID(), '_quartos_imovel', true );
+                    $banheiros = get_post_meta( get_the_ID(), '_banheiros_imovel', true );
+                    $suites    = get_post_meta( get_the_ID(), '_suites_imovel', true );
+                    $vagas     = get_post_meta( get_the_ID(), '_vagas_imovel', true );
+                    $tipo      = get_post_meta( get_the_ID(), '_tipo_imovel', true );
+                    ?>
+                    <div class="imovel-item-v2" data-aos="fade-up">
+                        <?php if ( has_post_thumbnail() ) : ?>
+                            <div class="imovel-thumb-v2">
+                                <?php the_post_thumbnail( 'medium_large' ); ?>
+                            </div>
+                        <?php endif; ?>
+
+                        <div class="imovel-dados-v2">
+                            <h3 class="imovel-titulo-v2"><?php the_title(); ?></h3>
+                            <p class="imovel-tipo-v2"><?php echo esc_html( $tipo ); ?></p>
+                            <ul class="imovel-info-list-v2">
+                                <li><strong><?php _e( 'Endereço:', 'imoveis-sp' ); ?></strong> <?php echo esc_html( $endereco ); ?></li>
+                                <li><strong><?php _e( 'Bairro:', 'imoveis-sp' ); ?></strong> <?php echo esc_html( $bairro ); ?></li>
+                                <li><strong><?php _e( 'Cidade:', 'imoveis-sp' ); ?></strong> <?php echo esc_html( $cidade ); ?></li>
+                                <li><strong><?php _e( 'Área:', 'imoveis-sp' ); ?></strong> <?php echo esc_html( $area ); ?> m²</li>
+                                <li><strong><?php _e( 'Quartos:', 'imoveis-sp' ); ?></strong> <?php echo esc_html( $quartos ); ?></li>
+                                <li><strong><?php _e( 'Banheiros:', 'imoveis-sp' ); ?></strong> <?php echo esc_html( $banheiros ); ?></li>
+                                <li><strong><?php _e( 'Suítes:', 'imoveis-sp' ); ?></strong> <?php echo esc_html( $suites ); ?></li>
+                                <li><strong><?php _e( 'Vagas:', 'imoveis-sp' ); ?></strong> <?php echo esc_html( $vagas ); ?></li>
+                                <li><strong><?php _e( 'Preço:', 'imoveis-sp' ); ?></strong> R$ <?php echo esc_html( $preco ); ?></li>
+                            </ul>
+                            <p class="imovel-desc-v2"><?php echo esc_html( $descricao ); ?></p>
+
+                            <a href="<?php the_permalink(); ?>" class="imovel-link-v2"><?php _e( 'Ver detalhes', 'imoveis-sp' ); ?></a>
+                        </div>
+                    </div>
+                <?php endwhile; ?>
+            </div>
+        <?php
+        else:
+            echo '<p>' . __( 'Nenhum imóvel encontrado.', 'imoveis-sp' ) . '</p>';
+        endif;
+
         wp_reset_postdata();
-        
+
         return ob_get_clean();
     }
-    
+
     /**
-     * Renderiza o layout de cada item de imóvel
+     * NOVO Shortcode v2: [pesquisar_imoveis_v2]
+     * - Pesquisa com mais filtros: bairro, cidade, faixa de preço, tipo.
      */
-    private function render_imovel_item() {
-        $endereco       = get_post_meta( get_the_ID(), '_endereco_imovel', true );
-        $bairro         = get_post_meta( get_the_ID(), '_bairro_imovel', true );
-        $cidade         = get_post_meta( get_the_ID(), '_cidade_imovel', true );
-        $preco          = get_post_meta( get_the_ID(), '_preco_imovel', true );
-        $descricao      = get_post_meta( get_the_ID(), '_descricao_imovel', true );
-        $tipo           = get_post_meta( get_the_ID(), '_tipo_imovel', true );
-        $quartos        = get_post_meta( get_the_ID(), '_quartos_imovel', true );
-        $banheiros      = get_post_meta( get_the_ID(), '_banheiros_imovel', true );
-        $garagens       = get_post_meta( get_the_ID(), '_garagens_imovel', true );
-        $area           = get_post_meta( get_the_ID(), '_area_imovel', true );
-        $ano_construcao = get_post_meta( get_the_ID(), '_ano_construcao_imovel', true );
-        $status         = get_post_meta( get_the_ID(), '_status_imovel', true );
+    public function shortcode_pesquisar_imoveis_v2( $atts ) {
+        ob_start();
         ?>
-        <div class="imovel-item">
-            <?php if ( has_post_thumbnail() ) : ?>
-                <div class="imovel-thumb">
-                    <?php the_post_thumbnail( 'medium' ); ?>
-                </div>
-            <?php endif; ?>
-            <div class="imovel-dados">
-                <h3 class="imovel-titulo"><?php the_title(); ?></h3>
-                <p><strong><?php _e( 'Endereço:', 'imoveis-sp' ); ?></strong> <?php echo esc_html( $endereco ); ?></p>
-                <p><strong><?php _e( 'Bairro:', 'imoveis-sp' ); ?></strong> <?php echo esc_html( $bairro ); ?></p>
-                <p><strong><?php _e( 'Cidade:', 'imoveis-sp' ); ?></strong> <?php echo esc_html( $cidade ); ?></p>
-                <p><strong><?php _e( 'Tipo:', 'imoveis-sp' ); ?></strong> <?php echo esc_html( ucfirst($tipo) ); ?></p>
-                <p><strong><?php _e( 'Quartos:', 'imoveis-sp' ); ?></strong> <?php echo esc_html( $quartos ); ?></p>
-                <p><strong><?php _e( 'Banheiros:', 'imoveis-sp' ); ?></strong> <?php echo esc_html( $banheiros ); ?></p>
-                <p><strong><?php _e( 'Garagem:', 'imoveis-sp' ); ?></strong> <?php echo esc_html( $garagens ); ?></p>
-                <p><strong><?php _e( 'Área:', 'imoveis-sp' ); ?></strong> <?php echo esc_html( $area ); ?> m²</p>
-                <p><strong><?php _e( 'Ano de Construção:', 'imoveis-sp' ); ?></strong> <?php echo esc_html( $ano_construcao ); ?></p>
-                <p><strong><?php _e( 'Preço:', 'imoveis-sp' ); ?></strong> R$ <?php echo esc_html( $preco ); ?></p>
-                <p class="imovel-descricao"><?php echo esc_html( $descricao ); ?></p>
-                <a href="<?php the_permalink(); ?>" class="btn-imoveis"><?php _e( 'Ver detalhes', 'imoveis-sp' ); ?></a>
+        <form method="GET" action="" class="form-pesquisa-v2">
+            <div class="form-group">
+                <label for="pesquisa_bairro"><?php _e( 'Bairro:', 'imoveis-sp' ); ?></label>
+                <input type="text" id="pesquisa_bairro" name="pesquisa_bairro" value="<?php echo isset($_GET['pesquisa_bairro']) ? esc_attr($_GET['pesquisa_bairro']) : ''; ?>">
             </div>
-        </div>
+
+            <div class="form-group">
+                <label for="pesquisa_cidade"><?php _e( 'Cidade:', 'imoveis-sp' ); ?></label>
+                <input type="text" id="pesquisa_cidade" name="pesquisa_cidade" value="<?php echo isset($_GET['pesquisa_cidade']) ? esc_attr($_GET['pesquisa_cidade']) : ''; ?>">
+            </div>
+
+            <div class="form-group">
+                <label for="preco_min"><?php _e( 'Preço mín.:', 'imoveis-sp' ); ?></label>
+                <input type="number" step="0.01" id="preco_min" name="preco_min" value="<?php echo isset($_GET['preco_min']) ? esc_attr($_GET['preco_min']) : ''; ?>">
+            </div>
+
+            <div class="form-group">
+                <label for="preco_max"><?php _e( 'Preço máx.:', 'imoveis-sp' ); ?></label>
+                <input type="number" step="0.01" id="preco_max" name="preco_max" value="<?php echo isset($_GET['preco_max']) ? esc_attr($_GET['preco_max']) : ''; ?>">
+            </div>
+
+            <div class="form-group">
+                <label for="tipo_imovel_busca"><?php _e( 'Tipo do Imóvel:', 'imoveis-sp' ); ?></label>
+                <input type="text" id="tipo_imovel_busca" name="tipo_imovel_busca" placeholder="<?php _e('Ex: Apartamento, Casa...', 'imoveis-sp'); ?>" value="<?php echo isset($_GET['tipo_imovel_busca']) ? esc_attr($_GET['tipo_imovel_busca']) : ''; ?>">
+            </div>
+
+            <div class="form-group">
+                <button type="submit" class="btn-pesquisa-v2"><?php _e( 'Buscar', 'imoveis-sp' ); ?></button>
+            </div>
+        </form>
         <?php
+
+        // Verifica pesquisa
+        $has_search = (
+            isset($_GET['pesquisa_bairro']) ||
+            isset($_GET['pesquisa_cidade']) ||
+            isset($_GET['preco_min']) ||
+            isset($_GET['preco_max']) ||
+            isset($_GET['tipo_imovel_busca'])
+        );
+
+        if ( $has_search ) {
+            $bairro_buscado  = isset($_GET['pesquisa_bairro']) ? sanitize_text_field($_GET['pesquisa_bairro']) : '';
+            $cidade_buscada  = isset($_GET['pesquisa_cidade']) ? sanitize_text_field($_GET['pesquisa_cidade']) : '';
+            $preco_min       = isset($_GET['preco_min']) ? floatval($_GET['preco_min']) : '';
+            $preco_max       = isset($_GET['preco_max']) ? floatval($_GET['preco_max']) : '';
+            $tipo_buscado    = isset($_GET['tipo_imovel_busca']) ? sanitize_text_field($_GET['tipo_imovel_busca']) : '';
+
+            $meta_query = array('relation' => 'AND');
+
+            if ( ! empty($bairro_buscado) ) {
+                $meta_query[] = array(
+                    'key'     => '_bairro_imovel',
+                    'value'   => $bairro_buscado,
+                    'compare' => 'LIKE'
+                );
+            }
+            if ( ! empty($cidade_buscada) ) {
+                $meta_query[] = array(
+                    'key'     => '_cidade_imovel',
+                    'value'   => $cidade_buscada,
+                    'compare' => 'LIKE'
+                );
+            }
+
+            if ( ! empty($tipo_buscado) ) {
+                $meta_query[] = array(
+                    'key'     => '_tipo_imovel',
+                    'value'   => $tipo_buscado,
+                    'compare' => 'LIKE'
+                );
+            }
+
+            // Faixa de preço
+            if ( $preco_min !== '' && $preco_max !== '' && $preco_min <= $preco_max ) {
+                $meta_query[] = array(
+                    'key'     => '_preco_imovel',
+                    'value'   => array( $preco_min, $preco_max ),
+                    'compare' => 'BETWEEN',
+                    'type'    => 'NUMERIC'
+                );
+            } elseif ( $preco_min !== '' ) {
+                $meta_query[] = array(
+                    'key'     => '_preco_imovel',
+                    'value'   => $preco_min,
+                    'compare' => '>=',
+                    'type'    => 'NUMERIC'
+                );
+            } elseif ( $preco_max !== '' ) {
+                $meta_query[] = array(
+                    'key'     => '_preco_imovel',
+                    'value'   => $preco_max,
+                    'compare' => '<=',
+                    'type'    => 'NUMERIC'
+                );
+            }
+
+            $args = array(
+                'post_type'      => 'imovel',
+                'posts_per_page' => -1,
+                'meta_query'     => $meta_query
+            );
+
+            $query = new WP_Query( $args );
+            ?>
+
+            <div class="imoveis-listagem-v2">
+            <?php
+            if ( $query->have_posts() ) {
+                while ( $query->have_posts() ) {
+                    $query->the_post();
+                    $endereco  = get_post_meta( get_the_ID(), '_endereco_imovel', true );
+                    $bairro    = get_post_meta( get_the_ID(), '_bairro_imovel', true );
+                    $cidade    = get_post_meta( get_the_ID(), '_cidade_imovel', true );
+                    $preco     = get_post_meta( get_the_ID(), '_preco_imovel', true );
+                    $descricao = get_post_meta( get_the_ID(), '_descricao_imovel', true );
+
+                    $area      = get_post_meta( get_the_ID(), '_area_imovel', true );
+                    $quartos   = get_post_meta( get_the_ID(), '_quartos_imovel', true );
+                    $banheiros = get_post_meta( get_the_ID(), '_banheiros_imovel', true );
+                    $suites    = get_post_meta( get_the_ID(), '_suites_imovel', true );
+                    $vagas     = get_post_meta( get_the_ID(), '_vagas_imovel', true );
+                    $tipo      = get_post_meta( get_the_ID(), '_tipo_imovel', true );
+                    ?>
+                    <div class="imovel-item-v2" data-aos="fade-up">
+                        <?php if ( has_post_thumbnail() ) : ?>
+                            <div class="imovel-thumb-v2">
+                                <?php the_post_thumbnail( 'medium_large' ); ?>
+                            </div>
+                        <?php endif; ?>
+
+                        <div class="imovel-dados-v2">
+                            <h3 class="imovel-titulo-v2"><?php the_title(); ?></h3>
+                            <p class="imovel-tipo-v2"><?php echo esc_html( $tipo ); ?></p>
+                            <ul class="imovel-info-list-v2">
+                                <li><strong><?php _e( 'Endereço:', 'imoveis-sp' ); ?></strong> <?php echo esc_html( $endereco ); ?></li>
+                                <li><strong><?php _e( 'Bairro:', 'imoveis-sp' ); ?></strong> <?php echo esc_html( $bairro ); ?></li>
+                                <li><strong><?php _e( 'Cidade:', 'imoveis-sp' ); ?></strong> <?php echo esc_html( $cidade ); ?></li>
+                                <li><strong><?php _e( 'Área:', 'imoveis-sp' ); ?></strong> <?php echo esc_html( $area ); ?> m²</li>
+                                <li><strong><?php _e( 'Quartos:', 'imoveis-sp' ); ?></strong> <?php echo esc_html( $quartos ); ?></li>
+                                <li><strong><?php _e( 'Banheiros:', 'imoveis-sp' ); ?></strong> <?php echo esc_html( $banheiros ); ?></li>
+                                <li><strong><?php _e( 'Suítes:', 'imoveis-sp' ); ?></strong> <?php echo esc_html( $suites ); ?></li>
+                                <li><strong><?php _e( 'Vagas:', 'imoveis-sp' ); ?></strong> <?php echo esc_html( $vagas ); ?></li>
+                                <li><strong><?php _e( 'Preço:', 'imoveis-sp' ); ?></strong> R$ <?php echo esc_html( $preco ); ?></li>
+                            </ul>
+                            <p class="imovel-desc-v2"><?php echo esc_html( $descricao ); ?></p>
+                            <a href="<?php the_permalink(); ?>" class="imovel-link-v2"><?php _e( 'Ver detalhes', 'imoveis-sp' ); ?></a>
+                        </div>
+                    </div>
+                    <?php
+                }
+            } else {
+                echo '<p>' . __( 'Nenhum imóvel encontrado para esses critérios.', 'imoveis-sp' ) . '</p>';
+            }
+            ?>
+            </div>
+            <?php
+
+            wp_reset_postdata();
+        }
+
+        return ob_get_clean();
+    }
+
+    /**
+     * Exemplo de "página customizada" (versão 2) [imoveis_custom_page]
+     * - Poderia ser usada para exibir algo ainda mais custom ou avançado.
+     */
+    public function shortcode_imoveis_custom_page( $atts ) {
+        // Aqui você pode criar um layout diferente, ou mixar listagem + formulário de pesquisa
+        // Para exemplo, vamos exibir a listagem V2 seguida de um formulário de pesquisa V2.
+        ob_start();
+        echo '<h2>' . __( 'Página Especial de Imóveis', 'imoveis-sp' ) . '</h2>';
+        
+        // Reutilizando a listagem V2
+        echo do_shortcode('[listar_imoveis_v2 quantidade="4"]');
+
+        // Reutilizando a pesquisa V2
+        echo '<hr><h3>'. __( 'Pesquisar com mais filtros', 'imoveis-sp' ) .'</h3>';
+        echo do_shortcode('[pesquisar_imoveis_v2]');
+
+        return ob_get_clean();
     }
 }
 
-new ImoveisSPPremium();
+// Inicializa o plugin
+new ImoveisSPPlugin();
