@@ -1,170 +1,221 @@
-/* Reset básico */
-.catalogo-imoveis, .catalogo-imoveis * {
-    box-sizing: border-box;
-}
-
-/* Variáveis para facilitar a manutenção e consistência */
-:root {
-    --primary-color: #0073AA;
-    --primary-color-hover: #005177;
-    --secondary-bg: #f7f7f7;
-    --text-color: #333;
-    --text-muted: #555;
-    --border-color: #ccc;
-    --button-bg: #eee;
-}
-
-/* Barra de filtros moderna */
-.catalogo-filtros {
-    background-color: var(--secondary-bg);
-    padding: 20px;
-    border-radius: 8px;
-    margin-bottom: 25px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-}
-
-.catalogo-filtros form {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 15px;
-}
-
-.catalogo-filtros .filtro-item {
-    flex: 1 1 200px;
-}
-
-.catalogo-filtros label {
-    font-weight: bold;
-    margin-bottom: 5px;
-    display: block;
-}
-
-.catalogo-filtros input {
-    padding: 10px;
-    border: 1px solid var(--border-color);
-    border-radius: 4px;
-    width: 100%;
-    transition: border-color 0.3s;
-}
-
-.catalogo-filtros input:focus {
-    outline: none;
-    border-color: var(--primary-color);
-}
-
-.catalogo-filtros .btn-pesquisa {
-    background-color: var(--primary-color);
-    color: #fff;
-    border: none;
-    padding: 12px 20px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: background-color 0.3s, transform 0.2s;
-}
-
-.catalogo-filtros .btn-pesquisa:hover {
-    background-color: var(--primary-color-hover);
-    transform: scale(1.02);
-}
-
-/* Filtros avançados */
-.filtro-avancado {
-    width: 100%;
-}
-
-.filtro-avancado .btn-toggle-filtros {
-    background-color: var(--button-bg);
-    color: var(--text-color);
-    border: none;
-    padding: 8px 12px;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.3s;
-}
-
-.filtro-avancado .btn-toggle-filtros:hover {
-    background-color: #ddd;
-}
-
-.filtros-adicionais {
-    margin-top: 15px;
-    animation: fadeIn 0.5s ease-in-out;
-}
-
-/* Animação para filtros adicionais */
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-
-/* Listagem de imóveis */
-.lista-imoveis {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 25px;
-}
-
-.imovel-item {
-    background-color: #fff;
-    border-radius: 8px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
-    transition: transform 0.3s, box-shadow 0.3s;
-}
-
-.imovel-item:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
-}
-
-.imovel-thumb img {
-    width: 100%;
-    height: 200px; /* Altura fixa para consistência */
-    object-fit: cover;
-    display: block;
-}
-
-.imovel-info {
-    padding: 20px;
-}
-
-.imovel-titulo {
-    font-size: 1.5em;
-    margin-bottom: 10px;
-    color: var(--text-color);
-}
-
-.imovel-info p {
-    font-size: 1em;
-    margin: 8px 0;
-    color: var(--text-muted);
-}
-
-.imovel-info p i {
-    margin-right: 6px;
-    color: var(--primary-color);
-}
-
-.btn-detalhes {
-    display: inline-block;
-    background-color: var(--primary-color);
-    color: #fff;
-    padding: 12px 18px;
-    border-radius: 4px;
-    text-decoration: none;
-    margin-top: 15px;
-    transition: background-color 0.3s, transform 0.2s;
-}
-
-.btn-detalhes:hover {
-    background-color: var(--primary-color-hover);
-    transform: scale(1.02);
-}
-
-/* Responsividade */
-@media (max-width: 768px) {
-    .catalogo-filtros form {
-        flex-direction: column;
-    }
-}
+/* =========================================================================
+   RESET BÁSICO
+   ========================================================================= */
+   .catalogo-imoveis,
+   .catalogo-imoveis * {
+       box-sizing: border-box;
+       margin: 0;
+       padding: 0;
+   }
+   
+   /* =========================================================================
+      VARIÁVEIS GLOBAIS (CSS CUSTOM PROPERTIES)
+      =========================================================================
+      Facilita a manutenção de cores e estilos em todo o layout.
+      ========================================================================= */
+   :root {
+       --primary-color: #0073AA;
+       --primary-color-hover: #005177;
+       --secondary-bg: #f7f7f7;
+       --text-color: #333;
+       --text-muted: #555;
+       --border-color: #ccc;
+       --button-bg: #eee;
+   }
+   
+   /* =========================================================================
+      SEÇÃO DE FILTROS MODERNA
+      ========================================================================= */
+   .catalogo-filtros {
+       background-color: var(--secondary-bg);
+       padding: 20px;
+       border-radius: 8px;
+       margin-bottom: 25px;
+       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+   }
+   
+   .catalogo-filtros form {
+       display: flex;
+       flex-wrap: wrap;
+       gap: 15px; /* Espaçamento entre os campos */
+   }
+   
+   .catalogo-filtros .filtro-item {
+       flex: 1 1 200px;
+       display: flex;
+       flex-direction: column;
+   }
+   
+   .catalogo-filtros label {
+       font-weight: bold;
+       margin-bottom: 5px;
+       color: var(--text-color);
+   }
+   
+   .catalogo-filtros input {
+       padding: 10px;
+       border: 1px solid var(--border-color);
+       border-radius: 4px;
+       width: 100%;
+       font-size: 1em;
+       color: var(--text-color);
+       transition: border-color 0.3s, background-color 0.3s;
+   }
+   
+   /* Placeholder */
+   .catalogo-filtros input::placeholder {
+       color: var(--text-muted);
+   }
+   
+   /* Foco */
+   .catalogo-filtros input:focus {
+       outline: none;
+       border-color: var(--primary-color);
+       background-color: #fff;
+   }
+   
+   /* Botão de pesquisa */
+   .catalogo-filtros .btn-pesquisa {
+       background-color: var(--primary-color);
+       color: #fff;
+       border: none;
+       padding: 12px 20px;
+       border-radius: 4px;
+       cursor: pointer;
+       font-weight: bold;
+       font-size: 1em;
+       transition: background-color 0.3s, transform 0.2s;
+   }
+   
+   .catalogo-filtros .btn-pesquisa:hover {
+       background-color: var(--primary-color-hover);
+       transform: scale(1.02);
+   }
+   
+   /* -------------------------------------------------------------------------
+      FILTROS AVANÇADOS (botão toggle + área escondida)
+   ------------------------------------------------------------------------- */
+   .filtro-avancado {
+       width: 100%;
+       margin-top: 10px;
+   }
+   
+   .filtro-avancado .btn-toggle-filtros {
+       background-color: var(--button-bg);
+       color: var(--text-color);
+       border: none;
+       padding: 8px 12px;
+       border-radius: 4px;
+       cursor: pointer;
+       font-size: 0.95em;
+       transition: background-color 0.3s;
+   }
+   
+   .filtro-avancado .btn-toggle-filtros:hover {
+       background-color: #ddd;
+   }
+   
+   /* A área que será exibida/escondida */
+   .filtros-adicionais {
+       margin-top: 15px;
+       animation: fadeIn 0.5s ease-in-out forwards;
+       display: none; /* começa escondida para evitar "flash" */
+   }
+   
+   /* Animação suave de aparição */
+   @keyframes fadeIn {
+       from {
+           opacity: 0;
+           transform: translateY(-5px);
+       }
+       to {
+           opacity: 1;
+           transform: translateY(0);
+       }
+   }
+   
+   /* =========================================================================
+      LISTAGEM DE IMÓVEIS
+      ========================================================================= */
+   .lista-imoveis {
+       display: grid;
+       grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+       gap: 25px;
+   }
+   
+   /* Cartão de cada imóvel */
+   .imovel-item {
+       background-color: #fff;
+       border-radius: 8px;
+       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+       overflow: hidden;
+       transition: transform 0.3s, box-shadow 0.3s;
+   }
+   
+   .imovel-item:hover {
+       transform: translateY(-8px);
+       box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+   }
+   
+   /* Imagem */
+   .imovel-thumb img {
+       width: 100%;
+       height: 200px; /* Altura fixa para consistência */
+       object-fit: cover;
+       display: block;
+   }
+   
+   /* Informações do imóvel */
+   .imovel-info {
+       padding: 20px;
+   }
+   
+   .imovel-titulo {
+       font-size: 1.4em;
+       margin-bottom: 10px;
+       color: var(--text-color);
+       line-height: 1.2;
+   }
+   
+   .imovel-info p {
+       font-size: 1em;
+       margin: 8px 0;
+       color: var(--text-muted);
+   }
+   
+   .imovel-info p i {
+       margin-right: 6px;
+       color: var(--primary-color);
+   }
+   
+   /* Botão "Ver detalhes" */
+   .btn-detalhes {
+       display: inline-block;
+       background-color: var(--primary-color);
+       color: #fff;
+       padding: 12px 18px;
+       border-radius: 4px;
+       text-decoration: none;
+       margin-top: 15px;
+       transition: background-color 0.3s, transform 0.2s;
+       font-size: 0.95em;
+   }
+   
+   .btn-detalhes:hover {
+       background-color: var(--primary-color-hover);
+       transform: scale(1.02);
+   }
+   
+   /* =========================================================================
+      RESPONSIVIDADE
+      ========================================================================= */
+   @media (max-width: 768px) {
+       .catalogo-filtros form {
+           flex-direction: column;
+       }
+   
+       .lista-imoveis {
+           grid-template-columns: 1fr; /* uma coluna em telas menores */
+       }
+   }
+   
