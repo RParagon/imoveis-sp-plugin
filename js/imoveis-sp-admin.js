@@ -412,3 +412,69 @@
    FIM DE ARQUIVO
    ~ Aproximadamente 400 linhas, repleto de comentários e melhorias ~
 ======================================================================== */
+// Conteúdo de js/imoveis-sp-admin.js (Exemplo focado no CEP e galeria)
+
+jQuery(document).ready(function($){
+    // Botão para adicionar imagens
+    $('#btn-adicionar-imagens-galeria').on('click',function(e){
+      e.preventDefault();
+      let frame=wp.media({
+        title:'Selecione as Imagens',
+        multiple:true,
+        library:{type:'image'},
+        button:{text:'Adicionar à Galeria'}
+      });
+      frame.on('select',function(){
+        let selection=frame.state().get('selection');
+        let galeriaContainer=$('#galeria-imovel-container');
+        let hiddenField=$('#galeria_imovel_urls');
+        let currentVal=hiddenField.val();
+        let arr=(currentVal)?currentVal.split(','):[];
+        selection.each(function(attachment){
+          let url=attachment.toJSON().url;
+          arr.push(url);
+          let html='<div class="galeria-imovel-thumb" style="position:relative;width:120px;height:120px;overflow:hidden;border:1px solid #ccc;border-radius:4px;margin:5px;">';
+          html+='<img src="'+url+'" style="width:100%;height:100%;object-fit:cover;"/>';
+          html+='<span class="galeria-remove-img" data-img-url="'+url+'" style="position:absolute;top:4px;right:4px;background:#e74c3c;color:#fff;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;cursor:pointer;">x</span>';
+          html+='</div>';
+          galeriaContainer.append(html);
+        });
+        hiddenField.val(arr.join(','));
+      });
+      frame.open();
+    });
+  
+    // Remover imagem da galeria
+    $('#galeria-imovel-container').on('click','.galeria-remove-img',function(){
+      let url=$(this).data('imgUrl');
+      let hiddenField=$('#galeria_imovel_urls');
+      let currentVal=hiddenField.val();
+      let arr=currentVal.split(',');
+      let newArr=arr.filter(function(item){return item!==url;});
+      hiddenField.val(newArr.join(','));
+      $(this).closest('.galeria-imovel-thumb').remove();
+    });
+  
+    // Botão para obter coordenadas via CEP
+    $('#btn-obter-coordenadas-cep').on('click',function(e){
+      e.preventDefault();
+      let cep=$('#cep_imovel').val();
+      let apiKey=ImoveisSPAdminVars.googleApiKey;
+      if(!cep){alert('Digite o CEP.');return;}
+      if(!apiKey){alert('API Key não configurada.');return;}
+      let url='https://maps.googleapis.com/maps/api/geocode/json?address='+cep+'&key='+apiKey;
+      $.get(url,function(data){
+        if(data.status==='OK'&&data.results&&data.results.length>0){
+          let location=data.results[0].geometry.location;
+          $('#latitude_imovel').val(location.lat);
+          $('#longitude_imovel').val(location.lng);
+          alert('Coordenadas atualizadas com sucesso.');
+        }else{
+          alert('Não foi possível obter coordenadas para o CEP informado.');
+        }
+      }).fail(function(){
+        alert('Erro na requisição de coordenadas.');
+      });
+    });
+  });
+  
